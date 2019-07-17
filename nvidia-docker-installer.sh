@@ -5,11 +5,12 @@ set -o pipefail
 set -u
 
 set -x
-NVIDIA_DRIVER_VERSION="${NVIDIA_DRIVER_VERSION:-384.125}"
+NVIDIA_DRIVER_VERSION="${NVIDIA_DRIVER_VERSION:-418.67}"
 NVIDIA_DRIVER_DOWNLOAD_URL_DEFAULT="https://us.download.nvidia.com/tesla/${NVIDIA_DRIVER_VERSION}/NVIDIA-Linux-x86_64-${NVIDIA_DRIVER_VERSION}.run"
 NVIDIA_DRIVER_DOWNLOAD_URL="${NVIDIA_DRIVER_DOWNLOAD_URL:-$NVIDIA_DRIVER_DOWNLOAD_URL_DEFAULT}"
 NVIDIA_INSTALLER_RUNFILE="$(basename "${NVIDIA_DRIVER_DOWNLOAD_URL}")"
 NVIDIA_INSTALL_DIR="${NVIDIA_INSTALL_DIR:-/tmp}"
+INSTALLED_DOCKER_VERSION="$(apt-cache show docker-ce | grep Version | egrep -o '[0-9]{2}\.[0-9]{2}\.[0-9]')"
 set -x
 
 
@@ -67,7 +68,9 @@ install_nvidia_docker2() {
   distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
   curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | tee /etc/apt/sources.list.d/nvidia-docker.list
   apt-get update
-  apt-get install -y nvidia-docker2=2.0.3+docker18.06.3-3 nvidia-container-runtime=2.0.0+docker18.06.3-3
+  NEWEST_COMPATIBLE_NVIDIA_DOCKER="$(apt-cache madison nvidia-docker2 | egrep -o "[0-9\.]+\+docker${INSTALLED_DOCKER_VERSION}-[0-9]+" | head -n1)"
+  NEWEST_COMPATIBLE_NVIDIA_CONTAINER_RUNTIME="$(apt-cache madison nvidia-container-runtime | egrep -o "[0-9\.]+\+docker${INSTALLED_DOCKER_VERSION}-[0-9]+" | head -n1)"
+  apt-get install -y nvidia-docker2=$NEWEST_COMPATIBLE_NVIDIA_DOCKER nvidia-container-runtime=$NEWEST_COMPATIBLE_NVIDIA_CONTAINER_RUNTIME
 }
 
 set_nvidia_container_runtime() {
