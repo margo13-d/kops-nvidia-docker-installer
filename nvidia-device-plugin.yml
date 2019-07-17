@@ -16,7 +16,7 @@ spec:
         name: nvidia-device-plugin-ds
     spec:
       nodeSelector:
-        kops.k8s.io/instancegroup: gpu
+        kops.k8s.io/instancegroup: gpu-nodes
       tolerations:
       # This toleration is deprecated. Kept here for backward compatibility
       # See https://kubernetes.io/docs/tasks/administer-cluster/guaranteed-scheduling-critical-addon-pods/
